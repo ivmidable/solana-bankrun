@@ -8,9 +8,9 @@ export const enum CommitmentLevel {
   Confirmed = 1,
   Finalized = 2
 }
-export function startAnchor(path: string, extraPrograms: Array<[string, Uint8Array]>, accounts: Array<[Uint8Array, Account]>, computeMaxUnits?: bigint | undefined | null, transactionAccountLockLimit?: bigint | undefined | null): Promise<ProgramTestContext>
-export function start(programs: Array<[string, Uint8Array]>, accounts: Array<[Uint8Array, Account]>, computeMaxUnits?: bigint | undefined | null, transactionAccountLockLimit?: bigint | undefined | null): Promise<ProgramTestContext>
-export class Account {
+export function startAnchor(path: string, extraPrograms: Array<[string, Uint8Array, Uint8Array | undefined | null, Uint8Array | undefined | null]>, accounts: Array<[Uint8Array, Account]>, computeMaxUnits?: bigint | undefined | null, transactionAccountLockLimit?: bigint | undefined | null): Promise<ProgramTestContext>
+export function start(programs: Array<[string, Uint8Array, Uint8Array | undefined | null, Uint8Array | undefined | null]>, accounts: Array<[Uint8Array, Account]>, computeMaxUnits?: bigint | undefined | null, transactionAccountLockLimit?: bigint | undefined | null): Promise<ProgramTestContext>
+export declare class Account {
   constructor(lamports: bigint, data: Uint8Array, owner: Uint8Array, executable: boolean, rentEpoch: bigint)
   get lamports(): bigint
   get data(): Uint8Array
@@ -18,30 +18,30 @@ export class Account {
   get executable(): boolean
   get rentEpoch(): bigint
 }
-export class BlockhashRes {
+export declare class BlockhashRes {
   blockhash: string
   lastValidBlockHeight: bigint
 }
-export class TransactionStatus {
+export declare class TransactionStatus {
   get slot(): bigint
   get confirmations(): bigint | null
   get err(): string | null
   get confirmationStatus(): string | null
 }
-export class TransactionReturnData {
+export declare class TransactionReturnData {
   get programId(): Uint8Array
   get data(): Uint8Array
 }
-export class BanksTransactionMeta {
+export declare class BanksTransactionMeta {
   get logMessages(): Array<string>
   get returnData(): TransactionReturnData | null
   get computeUnitsConsumed(): bigint
 }
-export class BanksTransactionResultWithMeta {
+export declare class BanksTransactionResultWithMeta {
   get result(): string | null
   get meta(): BanksTransactionMeta | null
 }
-export class BanksClient {
+export declare class BanksClient {
   getAccount(address: Uint8Array, commitment?: CommitmentLevel | undefined | null): Promise<Account | null>
   sendLegacyTransaction(txBytes: Uint8Array): Promise<void>
   sendVersionedTransaction(txBytes: Uint8Array): Promise<void>
@@ -62,7 +62,7 @@ export class BanksClient {
   getFeeForMessage(messageBytes: Uint8Array, commitment?: CommitmentLevel | undefined | null): Promise<bigint | null>
 }
 /** Configuration of network rent. */
-export class Rent {
+export declare class Rent {
   /**
    * @param lamportsPerByteYear - Rental rate in lamports/byte-year.
    * @param exemptionThreshold - Amount of time (in years) a balance must include rent for the account to be rent exempt.
@@ -136,7 +136,7 @@ export class Rent {
  *
  * All members of `Clock` start from 0 upon network boot.
  */
-export class Clock {
+export declare class Clock {
   /**
    * @param slot - The current Slot.
    * @param epochStartTimestamp - The timestamp of the first `Slot` in this `Epoch`.
@@ -156,12 +156,12 @@ export class Clock {
   /** The approximate real world time of the current slot. */
   get unixTimestamp(): bigint
 }
-export class PohConfig {
+export declare class PohConfig {
   get targetTickDuration(): bigint
   get targetTickCount(): bigint | null
   get hashesPerTick(): bigint | null
 }
-export class FeeRateGovernor {
+export declare class FeeRateGovernor {
   get lamportsPerSignature(): bigint
   get targetLamportsPerSignature(): bigint
   get targetSignaturesPerSlot(): bigint
@@ -169,29 +169,29 @@ export class FeeRateGovernor {
   get maxLamportsPerSignature(): bigint
   get burnPercent(): number
 }
-export class Inflation {
+export declare class Inflation {
   get initial(): number
   get terminal(): number
   get taper(): number
   get foundation(): number
   get foundationTerm(): number
 }
-export class EpochSchedule {
+export declare class EpochSchedule {
   get slotsPerEpoch(): bigint
   get leaderScheduleSlotOffset(): bigint
   get warmup(): boolean
   get firstNormalEpoch(): bigint
   get firstNormalSlot(): bigint
 }
-export class AddressAndAccount {
+export declare class AddressAndAccount {
   address: Uint8Array
   get account(): Account
 }
-export class NativeInstructionProcessor {
+export declare class NativeInstructionProcessor {
   stringVal: string
   pubkeyVal: Uint8Array
 }
-export class GenesisConfig {
+export declare class GenesisConfig {
   get creationTime(): number
   get accounts(): Array<AddressAndAccount>
   get nativeInstructionProcessors(): Array<NativeInstructionProcessor>
@@ -204,7 +204,7 @@ export class GenesisConfig {
   get epochSchedule(): EpochSchedule
   get clusterType(): string
 }
-export class ProgramTestContext {
+export declare class ProgramTestContext {
   get banksClient(): BanksClient
   get payer(): Uint8Array
   get lastBlockhash(): string
