@@ -78,6 +78,13 @@ function fromAccountInfo(acc: AccountInfoBytes): Account {
 	);
 }
 
+function fromOptionalPubkey(pubkey?: PublicKey): Uint8Array | undefined {
+  if (pubkey) {
+    return pubkey.toBytes();
+  }
+  return undefined;
+}
+
 export class TransactionReturnData {
 	constructor(inner: TransactionReturnDataInner) {
 		this.inner = inner;
@@ -483,6 +490,8 @@ export class ProgramTestContext {
 export interface AddedProgram {
 	name: string;
 	programId: PublicKey;
+	programAuthority?: PublicKey;
+	programData?: PublicKey;
 }
 
 export interface AddedAccount {
@@ -509,7 +518,12 @@ export async function start(
 	transactionAccountLockLimit?: bigint,
 ): Promise<ProgramTestContext> {
 	const ctx = await startInner(
-		programs.map((p) => [p.name, p.programId.toBytes()]),
+		programs.map((p) => [
+			p.name,
+			p.programId.toBytes(),
+			fromOptionalPubkey(p.programAuthority),
+			fromOptionalPubkey(p.programData),
+		]),
 		accounts.map((a) => [a.address.toBytes(), fromAccountInfo(a.info)]),
 		computeMaxUnits,
 		transactionAccountLockLimit,
@@ -539,7 +553,12 @@ export async function startAnchor(
 ): Promise<ProgramTestContext> {
 	const ctx = await startAnchorInner(
 		path,
-		extraPrograms.map((p) => [p.name, p.programId.toBytes()]),
+		extraPrograms.map((p) => [
+			p.name,
+			p.programId.toBytes(),
+			fromOptionalPubkey(p.programAuthority),
+			fromOptionalPubkey(p.programData),
+		]),
 		accounts.map((a) => [a.address.toBytes(), fromAccountInfo(a.info)]),
 		computeMaxUnits,
 		transactionAccountLockLimit,

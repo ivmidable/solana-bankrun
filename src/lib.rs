@@ -18,10 +18,11 @@ use solana_program::{
     pubkey::Pubkey,
     rent::{Rent as RentOriginal, RentDue},
 };
-use solana_program_test::{
+use solana_test_framework::{
     BanksClient as BanksClientOriginal, BanksClientError, ProgramTest,
-    ProgramTestContext as ProgramTestContextOriginal,
+    ProgramTestContext as ProgramTestContextOriginal, ProgramTestExtension,
 };
+
 use solana_sdk::{
     account::{Account as AccountOriginal, AccountSharedData},
     commitment_config::CommitmentLevel as CommitmentLevelOriginal,
@@ -43,6 +44,14 @@ extern crate napi_derive;
 
 fn convert_pubkey(address: Uint8Array) -> Pubkey {
     Pubkey::try_from(address.as_ref()).unwrap()
+}
+
+fn convert_option_pubkey(address: Option<Uint8Array>) -> Option<Pubkey> {
+    if address.is_some() {
+        Some(Pubkey::try_from(address.unwrap().as_ref()).unwrap())
+    } else {
+        None
+    }
 }
 
 #[napi]
@@ -1002,15 +1011,19 @@ impl ProgramTestContext {
 }
 
 fn new_bankrun(
-    programs: Vec<(&str, Pubkey)>,
+    programs: Vec<(&str, Pubkey, Option<Pubkey>, Option<Pubkey>)>,
     compute_max_units: Option<u64>,
     transaction_account_lock_limit: Option<usize>,
     accounts: Vec<(Pubkey, Account)>,
 ) -> ProgramTest {
     let mut pt = ProgramTest::default();
-    pt.prefer_bpf(true);
+    //pt.prefer_bpf(true);
     for prog in programs {
-        pt.add_program(prog.0, prog.1, None);
+        if prog.3.is_some() {
+            pt.add_bpf_program_with_program_data(prog.0, prog.1, prog.2, prog.3.unwrap(), None);
+        } else {
+            pt.add_bpf_program(prog.0, prog.1, prog.2, None);
+        }
     }
     if let Some(cmu) = compute_max_units {
         pt.set_compute_max_units(cmu);
@@ -1027,14 +1040,21 @@ fn new_bankrun(
 #[napi]
 pub async fn start_anchor(
     path: String,
-    extra_programs: Vec<(&str, Uint8Array)>,
+    extra_programs: Vec<(&str, Uint8Array, Option<Uint8Array>, Option<Uint8Array>)>,
     accounts: Vec<(Uint8Array, &Account)>,
     compute_max_units: Option<BigInt>,
     transaction_account_lock_limit: Option<BigInt>,
 ) -> Result<ProgramTestContext> {
-    let mut programs: Vec<(&str, Pubkey)> = extra_programs
+    let mut programs: Vec<(&str, Pubkey, Option<Pubkey>, Option<Pubkey>)> = extra_programs
         .iter()
-        .map(|tup| (tup.0, Pubkey::try_from(tup.1.as_ref()).unwrap()))
+        .map(|tup| {
+            (
+                tup.0,
+                convert_pubkey(tup.1.clone()),
+                convert_option_pubkey(tup.2.clone()),
+                convert_option_pubkey(tup.3.clone()),
+            )
+        })
         .collect();
     let mut sbf_out_dir: PathBuf = path.parse().unwrap();
     let mut anchor_toml_path = sbf_out_dir.clone();
@@ -1067,7 +1087,7 @@ pub async fn start_anchor(
                 format!("Invalid pubkey in `programs.localnet` table. {}", val),
             )
         })?;
-        programs.push((key, pk));
+        programs.push((key, pk, None, None));
     }
     std::env::set_var("SBF_OUT_DIR", sbf_out_dir);
     let parsed_accounts: Vec<(Pubkey, Account)> = accounts
@@ -1085,14 +1105,21 @@ pub async fn start_anchor(
 
 #[napi]
 pub async fn start(
-    programs: Vec<(&str, Uint8Array)>,
+    programs: Vec<(&str, Uint8Array, Option<Uint8Array>, Option<Uint8Array>)>,
     accounts: Vec<(Uint8Array, &Account)>,
     compute_max_units: Option<BigInt>,
     transaction_account_lock_limit: Option<BigInt>,
 ) -> ProgramTestContext {
     let programs_converted = programs
         .iter()
-        .map(|p| (p.0, convert_pubkey(p.1.clone())))
+        .map(|p| {
+            (
+                p.0,
+                convert_pubkey(p.1.clone()),
+                convert_option_pubkey(p.2.clone()),
+                convert_option_pubkey(p.3.clone()),
+            )
+        })
         .collect();
     let accounts_converted = accounts
         .iter()
